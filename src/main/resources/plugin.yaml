@@ -14,6 +14,6 @@ spec:
   configMapName: pixabay-settings
   homepage: https://github.com/microhalo/plugin-pixabay
   displayName: "Pixabay"
-  description: "提供从 Pixabay 选择或转存图片的能力"
+  description: "提供从 Pixabay 选择或转存图片到本地的能力"
   license:
     - name: "MIT"

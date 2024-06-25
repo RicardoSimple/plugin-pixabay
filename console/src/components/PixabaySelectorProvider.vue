@@ -36,6 +36,19 @@ const loading = ref(false);
 const selectedPhotos = ref<Set<any>>(new Set());
 const keyword = ref("");
 
+const uploadPhoto = async (photoUrl: string) => {
+  try {
+    const response = await axios.post('/api/v1alpha1/attachments/upload', {
+      url: photoUrl,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to upload photo', error);
+    Toast.error('上传图片失败');
+  }
+};
+
+
 const handleFetchPixabayAccessKey = async () => {
   try {
     const { data: configMap } = await apiClient.get<ConfigMap>(
@@ -104,8 +117,16 @@ const handleSelect = async (photo) => {
     selectedPhotos.value.delete(photo);
     return;
   }
-  selectedPhotos.value.add(photo);
+
+  const uploadedPhoto = await uploadPhoto(photo.largeImageURL);
+  if (uploadedPhoto) {
+    selectedPhotos.value.add({
+      ...photo,
+      newUrl: uploadedPhoto.url,
+    });
+  }
 };
+
 
 const isChecked = (photo) => {
   return Array.from(selectedPhotos.value)
@@ -116,12 +137,13 @@ const isChecked = (photo) => {
 watchEffect(() => {
   const photos = Array.from(selectedPhotos.value).map((photo) => {
     return {
-      url: photo.largeImageURL,
+      url: photo.newUrl || photo.largeImageURL,
       type: photo.tags as string,
     };
   });
   emit("update:selected", photos);
 });
+
 
 await handleFetchPixabayAccessKey();
 </script>
@@ -157,7 +179,7 @@ await handleFetchPixabayAccessKey();
         >
           <img
             class="pixabay-pointer-events-none pixabay-object-cover group-hover:pixabay-opacity-75"
-            :src="photo.previewURL"
+            :src="photo.newUrl || photo.previewURL"
           />
         </div>
         <div
